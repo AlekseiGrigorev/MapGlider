@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">MapGlider</string>
+    <string name="settings_icon_desc">Настройки</string>
+    <string name="my_location_icon_desc">Моё местоположение</string>
+    <string name="map_settings_title">Настройки карты</string>
+    <string name="map_type_label">Тип карты</string>
+    <string name="map_type_normal">Векторная (Стандарт)</string>
+    <string name="map_type_satellite">Спутник</string>
+    <string name="map_type_hybrid">Гибрид</string>
+    <string name="map_type_terrain">Рельеф</string>
+    <string name="joystick_position_label">Положение джойстика (альбомная)</string>
+    <string name="joystick_left">Слева</string>
+    <string name="joystick_center">По центру</string>
+    <string name="joystick_right">Справа</string>
+</resources>

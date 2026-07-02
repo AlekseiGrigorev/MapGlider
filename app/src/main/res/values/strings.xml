@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">MapGlider</string>
+    <string name="settings_icon_desc">Settings</string>
+    <string name="my_location_icon_desc">My Location</string>
+    <string name="map_settings_title">Map Settings</string>
+    <string name="map_type_label">Map Type</string>
+    <string name="map_type_normal">Vector (Standard)</string>
+    <string name="map_type_satellite">Satellite</string>
+    <string name="map_type_hybrid">Hybrid</string>
+    <string name="map_type_terrain">Terrain</string>
+    <string name="joystick_position_label">Joystick Position (Landscape)</string>
+    <string name="joystick_left">Left</string>
+    <string name="joystick_center">Center</string>
+    <string name="joystick_right">Right</string>
+</resources>

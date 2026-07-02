@@ -1,0 +1,4 @@
+<resources>
+
+    <style name="Theme.MapGlider" parent="Theme.MaterialComponents.Light" />
+</resources>

@@ -1,0 +1,16 @@
+*.iml
+.gradle
+/local.properties
+/.idea/
+/.agent/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+keystore.jks
+/app/release/
+gradle/gradle-daemon-jvm.properties
+/Debug certificate fingerprint.txt
+/Release certificate fingerprint.txt
