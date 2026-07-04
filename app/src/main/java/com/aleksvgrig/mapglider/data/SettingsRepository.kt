@@ -17,9 +17,14 @@ enum class JoystickPosition {
     LEFT, CENTER, RIGHT
 }
 
+enum class JoystickSideAction {
+    ROTATE, SHIFT
+}
+
 class SettingsRepository(private val context: Context) {
     private val mapTypeKey = stringPreferencesKey("map_type")
     private val joystickPositionKey = stringPreferencesKey("joystick_position")
+    private val joystickSideActionKey = stringPreferencesKey("joystick_side_action")
     private val tiltKey = floatPreferencesKey("tilt")
     private val joystickSizeKey = floatPreferencesKey("joystick_size")
 
@@ -43,6 +48,16 @@ class SettingsRepository(private val context: Context) {
             }
         }
 
+    val joystickSideActionFlow: Flow<JoystickSideAction> = context.dataStore.data
+        .map { preferences ->
+            val actionName = preferences[joystickSideActionKey] ?: JoystickSideAction.ROTATE.name
+            try {
+                JoystickSideAction.valueOf(actionName)
+            } catch (_: Exception) {
+                JoystickSideAction.ROTATE
+            }
+        }
+
     val tiltFlow: Flow<Float> = context.dataStore.data
         .map { preferences ->
             preferences[tiltKey] ?: 45f
@@ -62,6 +77,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun saveJoystickPosition(position: JoystickPosition) {
         context.dataStore.edit { preferences ->
             preferences[joystickPositionKey] = position.name
+        }
+    }
+
+    suspend fun saveJoystickSideAction(action: JoystickSideAction) {
+        context.dataStore.edit { preferences ->
+            preferences[joystickSideActionKey] = action.name
         }
     }
 

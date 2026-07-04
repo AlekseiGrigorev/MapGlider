@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Offset
+import com.aleksvgrig.mapglider.data.JoystickSideAction
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -22,6 +23,7 @@ class FlightController(
 ) {
     private var velocity = Offset.Zero
     private var targetVelocity = Offset.Zero
+    private var sideAction = JoystickSideAction.ROTATE
     
     // Physics constants
     private val acceleration = 0.05f
@@ -30,8 +32,9 @@ class FlightController(
     private val moveScale = 5.0f // meters per frame at max zoom
     private val rotationScale = 2.0f // degrees per frame
 
-    fun updateInput(input: Offset) {
+    fun updateInput(input: Offset, action: JoystickSideAction) {
         targetVelocity = input
+        sideAction = action
     }
 
     suspend fun startFlightLoop() {
@@ -48,30 +51,36 @@ class FlightController(
             }
 
             if (velocity != Offset.Zero) {
-                applyMovement(velocity)
+                applyMovement(velocity, sideAction)
             }
 
             delay(16.milliseconds) // ~60 FPS
         }
     }
 
-    private fun applyMovement(vel: Offset) {
+    private fun applyMovement(vel: Offset, action: JoystickSideAction) {
         val currentPos = cameraPositionState.position
         val zoom = currentPos.zoom
         
         // Dynamic speed based on zoom (higher altitude = faster movement)
         val speedMultiplier = max(1.0, 2.0.pow((20.0 - zoom))).toFloat()
-        val moveDist = -vel.y * moveScale * speedMultiplier
         
-        // Calculate new LatLng
-        val currentLatLng = currentPos.target
-        val newLatLng = currentLatLng.computeOffset(moveDist.toDouble(), currentPos.bearing.toDouble())
+        // Calculate new LatLng (Forward/Backward)
+        val moveDistY = -vel.y * moveScale * speedMultiplier
+        var currentLatLng = currentPos.target
+        currentLatLng = currentLatLng.computeOffset(moveDistY.toDouble(), currentPos.bearing.toDouble())
 
-        // Calculate new Bearing
-        val newBearing = (currentPos.bearing + vel.x * rotationScale) % 360f
+        // Calculate new Bearing OR Strafe
+        var newBearing = currentPos.bearing
+        if (action == JoystickSideAction.ROTATE) {
+            newBearing = (currentPos.bearing + vel.x * rotationScale) % 360f
+        } else {
+            val moveDistX = vel.x * moveScale * speedMultiplier
+            currentLatLng = currentLatLng.computeOffset(moveDistX.toDouble(), (currentPos.bearing + 90.0) % 360.0)
+        }
         
         val newPosition = CameraPosition.Builder()
-            .target(newLatLng)
+            .target(currentLatLng)
             .zoom(zoom)
             .bearing(newBearing)
             .tilt(currentPos.tilt)
@@ -84,12 +93,13 @@ class FlightController(
 @Composable
 fun FlightLoop(
     cameraPositionState: CameraPositionState,
-    joystickOffset: Offset
+    joystickOffset: Offset,
+    joystickSideAction: JoystickSideAction
 ) {
     val controller = remember(cameraPositionState) { FlightController(cameraPositionState) }
     
-    LaunchedEffect(joystickOffset) {
-        controller.updateInput(joystickOffset)
+    LaunchedEffect(joystickOffset, joystickSideAction) {
+        controller.updateInput(joystickOffset, joystickSideAction)
     }
 
     LaunchedEffect(Unit) {

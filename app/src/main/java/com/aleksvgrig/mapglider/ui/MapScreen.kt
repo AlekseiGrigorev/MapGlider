@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aleksvgrig.mapglider.R
 import com.aleksvgrig.mapglider.data.JoystickPosition
+import com.aleksvgrig.mapglider.data.JoystickSideAction
 import com.aleksvgrig.mapglider.data.SettingsRepository
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -103,6 +104,8 @@ fun MapScreen(
         .collectAsStateWithLifecycle(initialValue = MapType.NORMAL)
     val joystickPosition by settingsRepository.joystickPositionFlow
         .collectAsStateWithLifecycle(initialValue = JoystickPosition.CENTER)
+    val joystickSideAction by settingsRepository.joystickSideActionFlow
+        .collectAsStateWithLifecycle(initialValue = JoystickSideAction.ROTATE)
     val tilt by settingsRepository.tiltFlow
         .collectAsStateWithLifecycle(initialValue = 45f)
     val joystickSize by settingsRepository.joystickSizeFlow
@@ -152,7 +155,7 @@ fun MapScreen(
         }
     }
 
-    FlightLoop(cameraPositionState, joystickOffset)
+    FlightLoop(cameraPositionState, joystickOffset, joystickSideAction)
 
     val isExpanded = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
     val isCompactHeight = windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
@@ -266,6 +269,7 @@ fun MapScreen(
                     SettingsContent(
                         currentMapType = selectedMapType,
                         currentJoystickPosition = joystickPosition,
+                        currentJoystickSideAction = joystickSideAction,
                         currentTilt = tilt,
                         currentJoystickSize = joystickSize,
                         onMapTypeSelected = { 
@@ -277,6 +281,11 @@ fun MapScreen(
                         onJoystickPositionSelected = {
                             scope.launch {
                                 settingsRepository.saveJoystickPosition(it)
+                            }
+                        },
+                        onJoystickSideActionSelected = {
+                            scope.launch {
+                                settingsRepository.saveJoystickSideAction(it)
                             }
                         },
                         onTiltChanged = {
@@ -300,10 +309,12 @@ fun MapScreen(
 fun SettingsContent(
     currentMapType: MapType,
     currentJoystickPosition: JoystickPosition = JoystickPosition.CENTER,
+    currentJoystickSideAction: JoystickSideAction = JoystickSideAction.ROTATE,
     currentTilt: Float = 45f,
     currentJoystickSize: Float = 1.0f,
     onMapTypeSelected: (MapType) -> Unit,
     onJoystickPositionSelected: (JoystickPosition) -> Unit = {},
+    onJoystickSideActionSelected: (JoystickSideAction) -> Unit = {},
     onTiltChanged: (Float) -> Unit = {},
     onJoystickSizeChanged: (Float) -> Unit = {}
 ) {
@@ -428,6 +439,45 @@ fun SettingsContent(
                 ) {
                     RadioButton(
                         selected = (position == currentJoystickPosition),
+                        onClick = null
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Text(text = label, style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
+
+        Text(
+            text = stringResource(R.string.joystick_side_action_label),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        val joystickSideActions = listOf(
+            JoystickSideAction.ROTATE to stringResource(R.string.joystick_action_rotate),
+            JoystickSideAction.SHIFT to stringResource(R.string.joystick_action_shift)
+        )
+
+        Column(Modifier.selectableGroup()) {
+            joystickSideActions.forEach { (action, label) ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .selectable(
+                            selected = (action == currentJoystickSideAction),
+                            onClick = { onJoystickSideActionSelected(action) },
+                            role = Role.RadioButton
+                        )
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = (action == currentJoystickSideAction),
                         onClick = null
                     )
                     Spacer(Modifier.width(16.dp))
