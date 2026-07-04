@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.selectable
@@ -31,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -102,6 +103,20 @@ fun MapScreen(
         .collectAsStateWithLifecycle(initialValue = MapType.NORMAL)
     val joystickPosition by settingsRepository.joystickPositionFlow
         .collectAsStateWithLifecycle(initialValue = JoystickPosition.CENTER)
+    val tilt by settingsRepository.tiltFlow
+        .collectAsStateWithLifecycle(initialValue = 45f)
+    val joystickSize by settingsRepository.joystickSizeFlow
+        .collectAsStateWithLifecycle(initialValue = 1.0f)
+
+    LaunchedEffect(tilt) {
+        cameraPositionState.move(
+            CameraUpdateFactory.newCameraPosition(
+                CameraPosition.builder(cameraPositionState.position)
+                    .tilt(tilt)
+                    .build()
+            )
+        )
+    }
     
     val mapProperties = remember(locationPermissionsState.allPermissionsGranted, selectedMapType) {
         MapProperties(
@@ -171,7 +186,7 @@ fun MapScreen(
                         containerColor = MaterialTheme.colorScheme.surface,
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ) {
-                        Icon(Icons.Default.Settings, contentDescription = context.getString(R.string.settings_icon_desc))
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_icon_desc))
                     }
                     
                     Spacer(modifier = Modifier.height(8.dp))
@@ -201,7 +216,7 @@ fun MapScreen(
                         containerColor = MaterialTheme.colorScheme.surface,
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ) {
-                        Icon(Icons.Default.MyLocation, contentDescription = context.getString(R.string.my_location_icon_desc))
+                        Icon(Icons.Default.MyLocation, contentDescription = stringResource(R.string.my_location_icon_desc))
                     }
                 }
             }
@@ -227,9 +242,11 @@ fun MapScreen(
                     ),
                 contentAlignment = joystickAlignment
             ) {
+                val baseSize = if (isCompactHeight) 100.dp else 120.dp
+                val baseDotSize = if (isCompactHeight) 35.dp else 40.dp
                 Joystick(
-                    size = if (isCompactHeight) 100.dp else 120.dp,
-                    dotSize = if (isCompactHeight) 35.dp else 40.dp,
+                    size = baseSize * joystickSize,
+                    dotSize = baseDotSize * joystickSize,
                     onJoystickUpdate = {
                         joystickOffset = it
                     }
@@ -249,6 +266,8 @@ fun MapScreen(
                     SettingsContent(
                         currentMapType = selectedMapType,
                         currentJoystickPosition = joystickPosition,
+                        currentTilt = tilt,
+                        currentJoystickSize = joystickSize,
                         onMapTypeSelected = { 
                             scope.launch {
                                 settingsRepository.saveMapType(it)
@@ -258,6 +277,16 @@ fun MapScreen(
                         onJoystickPositionSelected = {
                             scope.launch {
                                 settingsRepository.saveJoystickPosition(it)
+                            }
+                        },
+                        onTiltChanged = {
+                            scope.launch {
+                                settingsRepository.saveTilt(it)
+                            }
+                        },
+                        onJoystickSizeChanged = {
+                            scope.launch {
+                                settingsRepository.saveJoystickSize(it)
                             }
                         }
                     )
@@ -271,10 +300,13 @@ fun MapScreen(
 fun SettingsContent(
     currentMapType: MapType,
     currentJoystickPosition: JoystickPosition = JoystickPosition.CENTER,
+    currentTilt: Float = 45f,
+    currentJoystickSize: Float = 1.0f,
     onMapTypeSelected: (MapType) -> Unit,
-    onJoystickPositionSelected: (JoystickPosition) -> Unit = {}
+    onJoystickPositionSelected: (JoystickPosition) -> Unit = {},
+    onTiltChanged: (Float) -> Unit = {},
+    onJoystickSizeChanged: (Float) -> Unit = {}
 ) {
-    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -283,25 +315,61 @@ fun SettingsContent(
             .padding(bottom = 32.dp)
     ) {
         Text(
-            text = context.getString(R.string.map_settings_title),
+            text = stringResource(R.string.map_settings_title),
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(bottom = 16.dp)
         )
         
         HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
+
+        Text(
+            text = stringResource(R.string.tilt_label, currentTilt.toInt()),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Slider(
+            value = currentTilt,
+            onValueChange = onTiltChanged,
+            valueRange = 0f..90f,
+            steps = 89,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
+
+        Text(
+            text = stringResource(R.string.joystick_size_label, currentJoystickSize),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Slider(
+            value = currentJoystickSize,
+            onValueChange = onJoystickSizeChanged,
+            valueRange = 1.0f..2.0f,
+            steps = 9,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
         
         Text(
-            text = context.getString(R.string.map_type_label),
+            text = stringResource(R.string.map_type_label),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         
         val mapTypes = listOf(
-            MapType.NORMAL to context.getString(R.string.map_type_normal),
-            MapType.SATELLITE to context.getString(R.string.map_type_satellite),
-            MapType.HYBRID to context.getString(R.string.map_type_hybrid),
-            MapType.TERRAIN to context.getString(R.string.map_type_terrain)
+            MapType.NORMAL to stringResource(R.string.map_type_normal),
+            MapType.SATELLITE to stringResource(R.string.map_type_satellite),
+            MapType.HYBRID to stringResource(R.string.map_type_hybrid),
+            MapType.TERRAIN to stringResource(R.string.map_type_terrain)
         )
         
         Column(Modifier.selectableGroup()) {
@@ -332,16 +400,16 @@ fun SettingsContent(
         HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
 
         Text(
-            text = context.getString(R.string.joystick_position_label),
+            text = stringResource(R.string.joystick_position_label),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
         val joystickPositions = listOf(
-            JoystickPosition.LEFT to context.getString(R.string.joystick_left),
-            JoystickPosition.CENTER to context.getString(R.string.joystick_center),
-            JoystickPosition.RIGHT to context.getString(R.string.joystick_right)
+            JoystickPosition.LEFT to stringResource(R.string.joystick_left),
+            JoystickPosition.CENTER to stringResource(R.string.joystick_center),
+            JoystickPosition.RIGHT to stringResource(R.string.joystick_right)
         )
 
         Column(Modifier.selectableGroup()) {

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.maps.android.compose.MapType
@@ -19,6 +20,8 @@ enum class JoystickPosition {
 class SettingsRepository(private val context: Context) {
     private val mapTypeKey = stringPreferencesKey("map_type")
     private val joystickPositionKey = stringPreferencesKey("joystick_position")
+    private val tiltKey = floatPreferencesKey("tilt")
+    private val joystickSizeKey = floatPreferencesKey("joystick_size")
 
     val mapTypeFlow: Flow<MapType> = context.dataStore.data
         .map { preferences ->
@@ -40,6 +43,16 @@ class SettingsRepository(private val context: Context) {
             }
         }
 
+    val tiltFlow: Flow<Float> = context.dataStore.data
+        .map { preferences ->
+            preferences[tiltKey] ?: 45f
+        }
+
+    val joystickSizeFlow: Flow<Float> = context.dataStore.data
+        .map { preferences ->
+            preferences[joystickSizeKey] ?: 1.0f
+        }
+
     suspend fun saveMapType(mapType: MapType) {
         context.dataStore.edit { preferences ->
             preferences[mapTypeKey] = mapType.name
@@ -49,6 +62,18 @@ class SettingsRepository(private val context: Context) {
     suspend fun saveJoystickPosition(position: JoystickPosition) {
         context.dataStore.edit { preferences ->
             preferences[joystickPositionKey] = position.name
+        }
+    }
+
+    suspend fun saveTilt(tilt: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[tiltKey] = tilt
+        }
+    }
+
+    suspend fun saveJoystickSize(size: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[joystickSizeKey] = size
         }
     }
 }

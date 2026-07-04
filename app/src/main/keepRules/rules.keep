@@ -4,9 +4,10 @@
 # For more details, see
 #   https://d.android.com/r/tools/r8/keep-rules
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Google Maps & Places
+# The Maps and Places SDKs for Android include their own ProGuard/R8 configurations.
+# Manual broad keep rules are redundant and cause warnings.
+
+# Legacy Apache HTTP
+# dontwarn is sufficient if the library is provided at runtime but missing during compilation/obfuscation analysis
+-dontwarn org.apache.http.**

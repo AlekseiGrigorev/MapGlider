@@ -30,6 +30,8 @@ android {
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
     }
 
+    useLibrary("org.apache.http.legacy")
+
     buildTypes {
         release {
             isMinifyEnabled = false

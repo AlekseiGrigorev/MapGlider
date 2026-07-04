@@ -12,4 +12,6 @@
     <string name="joystick_left">Left</string>
     <string name="joystick_center">Center</string>
     <string name="joystick_right">Right</string>
+    <string name="joystick_size_label">Joystick Size: %.1f</string>
+    <string name="tilt_label">Map Tilt: %d°</string>
 </resources>

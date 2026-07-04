@@ -12,4 +12,6 @@
     <string name="joystick_left">Слева</string>
     <string name="joystick_center">По центру</string>
     <string name="joystick_right">Справа</string>
+    <string name="joystick_size_label">Размер джойстика: %.1f</string>
+    <string name="tilt_label">Наклон карты: %d°</string>
 </resources>
