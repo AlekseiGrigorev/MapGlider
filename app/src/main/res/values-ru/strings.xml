@@ -18,4 +18,5 @@
     <string name="joystick_action_rotate">Поворот</string>
     <string name="joystick_action_shift">Сдвиг</string>
     <string name="tilt_label">Наклон карты: %d°</string>
+    <string name="hide_buttons_in_flight_label">Скрывать кнопки в режиме полета</string>
 </resources>

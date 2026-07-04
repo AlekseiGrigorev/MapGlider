@@ -3,6 +3,7 @@ package com.aleksvgrig.mapglider.data
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -27,6 +28,7 @@ class SettingsRepository(private val context: Context) {
     private val joystickSideActionKey = stringPreferencesKey("joystick_side_action")
     private val tiltKey = floatPreferencesKey("tilt")
     private val joystickSizeKey = floatPreferencesKey("joystick_size")
+    private val hideButtonsInFlightKey = booleanPreferencesKey("hide_buttons_in_flight")
 
     val mapTypeFlow: Flow<MapType> = context.dataStore.data
         .map { preferences ->
@@ -68,6 +70,11 @@ class SettingsRepository(private val context: Context) {
             preferences[joystickSizeKey] ?: 1.0f
         }
 
+    val hideButtonsInFlightFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[hideButtonsInFlightKey] ?: true
+        }
+
     suspend fun saveMapType(mapType: MapType) {
         context.dataStore.edit { preferences ->
             preferences[mapTypeKey] = mapType.name
@@ -95,6 +102,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun saveJoystickSize(size: Float) {
         context.dataStore.edit { preferences ->
             preferences[joystickSizeKey] = size
+        }
+    }
+
+    suspend fun saveHideButtonsInFlight(hide: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[hideButtonsInFlightKey] = hide
         }
     }
 }

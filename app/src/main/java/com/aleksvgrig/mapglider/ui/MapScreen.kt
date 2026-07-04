@@ -33,6 +33,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
@@ -111,6 +112,8 @@ fun MapScreen(
         .collectAsStateWithLifecycle(initialValue = 45f)
     val joystickSize by settingsRepository.joystickSizeFlow
         .collectAsStateWithLifecycle(initialValue = 1.0f)
+    val hideButtonsInFlight by settingsRepository.hideButtonsInFlightFlow
+        .collectAsStateWithLifecycle(initialValue = true)
 
     LaunchedEffect(tilt) {
         cameraPositionState.move(
@@ -122,18 +125,22 @@ fun MapScreen(
         )
     }
     
+    FlightLoop(cameraPositionState, joystickOffset, joystickSideAction)
+
+    val buttonsVisible = !hideButtonsInFlight || joystickOffset == Offset.Zero
+
+    val uiSettings = remember(buttonsVisible) {
+        MapUiSettings(
+            zoomControlsEnabled = buttonsVisible,
+            compassEnabled = buttonsVisible,
+            myLocationButtonEnabled = false
+        )
+    }
+
     val mapProperties = remember(locationPermissionsState.allPermissionsGranted, selectedMapType) {
         MapProperties(
             mapType = selectedMapType,
             isMyLocationEnabled = locationPermissionsState.allPermissionsGranted
-        )
-    }
-    
-    val uiSettings = remember {
-        MapUiSettings(
-            zoomControlsEnabled = true,
-            compassEnabled = true,
-            myLocationButtonEnabled = false
         )
     }
 
@@ -156,8 +163,6 @@ fun MapScreen(
         }
     }
 
-    FlightLoop(cameraPositionState, joystickOffset, joystickSideAction)
-
     val isExpanded = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
     val isCompactHeight = windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
 
@@ -174,74 +179,76 @@ fun MapScreen(
             )
 
             // Top-Right Buttons Overlay (Settings + My Location)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-                    .padding(16.dp),
-                contentAlignment = Alignment.TopEnd
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.End
+            if (buttonsVisible) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .statusBarsPadding()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.TopEnd
                 ) {
-                    FloatingActionButton(
-                        onClick = { showSettings = true },
-                        modifier = Modifier.size(48.dp),
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface
+                    Column(
+                        horizontalAlignment = Alignment.End
                     ) {
-                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_icon_desc))
-                    }
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    FloatingActionButton(
-                        onClick = {
-                            scope.launch {
-                                cameraPositionState.animate(
-                                    CameraUpdateFactory.newCameraPosition(
-                                        CameraPosition.builder(cameraPositionState.position)
-                                            .bearing(0f)
-                                            .build()
-                                    )
-                                )
-                            }
-                        },
-                        modifier = Modifier.size(48.dp),
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    ) {
-                        Icon(Icons.Default.Explore, contentDescription = stringResource(R.string.north_icon_desc))
-                    }
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    FloatingActionButton(
-                        onClick = {
-                            if (locationPermissionsState.allPermissionsGranted) {
+                        FloatingActionButton(
+                            onClick = { showSettings = true },
+                            modifier = Modifier.size(48.dp),
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ) {
+                            Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_icon_desc))
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        FloatingActionButton(
+                            onClick = {
                                 scope.launch {
-                                    val result = fusedLocationClient.getCurrentLocation(
-                                        Priority.PRIORITY_HIGH_ACCURACY,
-                                        null
-                                    ).await()
-                                    result?.let {
-                                        cameraPositionState.animate(
-                                            CameraUpdateFactory.newLatLngZoom(
-                                                LatLng(it.latitude, it.longitude),
-                                                15f
-                                            )
+                                    cameraPositionState.animate(
+                                        CameraUpdateFactory.newCameraPosition(
+                                            CameraPosition.builder(cameraPositionState.position)
+                                                .bearing(0f)
+                                                .build()
                                         )
-                                    }
+                                    )
                                 }
-                            } else {
-                                locationPermissionsState.launchMultiplePermissionRequest()
-                            }
-                        },
-                        modifier = Modifier.size(48.dp),
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    ) {
-                        Icon(Icons.Default.MyLocation, contentDescription = stringResource(R.string.my_location_icon_desc))
+                            },
+                            modifier = Modifier.size(48.dp),
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ) {
+                            Icon(Icons.Default.Explore, contentDescription = stringResource(R.string.north_icon_desc))
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        FloatingActionButton(
+                            onClick = {
+                                if (locationPermissionsState.allPermissionsGranted) {
+                                    scope.launch {
+                                        val result = fusedLocationClient.getCurrentLocation(
+                                            Priority.PRIORITY_HIGH_ACCURACY,
+                                            null
+                                        ).await()
+                                        result?.let {
+                                            cameraPositionState.animate(
+                                                CameraUpdateFactory.newLatLngZoom(
+                                                    LatLng(it.latitude, it.longitude),
+                                                    15f
+                                                )
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    locationPermissionsState.launchMultiplePermissionRequest()
+                                }
+                            },
+                            modifier = Modifier.size(48.dp),
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ) {
+                            Icon(Icons.Default.MyLocation, contentDescription = stringResource(R.string.my_location_icon_desc))
+                        }
                     }
                 }
             }
@@ -294,6 +301,7 @@ fun MapScreen(
                         currentJoystickSideAction = joystickSideAction,
                         currentTilt = tilt,
                         currentJoystickSize = joystickSize,
+                        hideButtonsInFlight = hideButtonsInFlight,
                         onMapTypeSelected = { 
                             scope.launch {
                                 settingsRepository.saveMapType(it)
@@ -319,6 +327,11 @@ fun MapScreen(
                             scope.launch {
                                 settingsRepository.saveJoystickSize(it)
                             }
+                        },
+                        onHideButtonsInFlightChanged = {
+                            scope.launch {
+                                settingsRepository.saveHideButtonsInFlight(it)
+                            }
                         }
                     )
                 }
@@ -334,11 +347,13 @@ fun SettingsContent(
     currentJoystickSideAction: JoystickSideAction = JoystickSideAction.ROTATE,
     currentTilt: Float = 45f,
     currentJoystickSize: Float = 1.0f,
+    hideButtonsInFlight: Boolean = true,
     onMapTypeSelected: (MapType) -> Unit,
     onJoystickPositionSelected: (JoystickPosition) -> Unit = {},
     onJoystickSideActionSelected: (JoystickSideAction) -> Unit = {},
     onTiltChanged: (Float) -> Unit = {},
-    onJoystickSizeChanged: (Float) -> Unit = {}
+    onJoystickSizeChanged: (Float) -> Unit = {},
+    onHideButtonsInFlightChanged: (Boolean) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -389,6 +404,27 @@ fun SettingsContent(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.hide_buttons_in_flight_label),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.weight(1f)
+            )
+            Switch(
+                checked = hideButtonsInFlight,
+                onCheckedChange = onHideButtonsInFlightChanged
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
         
         Text(
