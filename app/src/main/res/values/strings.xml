@@ -2,6 +2,7 @@
     <string name="app_name">MapGlider</string>
     <string name="settings_icon_desc">Settings</string>
     <string name="my_location_icon_desc">My Location</string>
+    <string name="north_icon_desc">Orient North</string>
     <string name="map_settings_title">Map Settings</string>
     <string name="map_type_label">Map Type</string>
     <string name="map_type_normal">Vector (Standard)</string>

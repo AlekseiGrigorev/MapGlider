@@ -2,6 +2,7 @@
     <string name="app_name">MapGlider</string>
     <string name="settings_icon_desc">Настройки</string>
     <string name="my_location_icon_desc">Моё местоположение</string>
+    <string name="north_icon_desc">На север</string>
     <string name="map_settings_title">Настройки карты</string>
     <string name="map_type_label">Тип карты</string>
     <string name="map_type_normal">Векторная (Стандарт)</string>

@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -190,6 +191,27 @@ fun MapScreen(
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ) {
                         Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_icon_desc))
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    FloatingActionButton(
+                        onClick = {
+                            scope.launch {
+                                cameraPositionState.animate(
+                                    CameraUpdateFactory.newCameraPosition(
+                                        CameraPosition.builder(cameraPositionState.position)
+                                            .bearing(0f)
+                                            .build()
+                                    )
+                                )
+                            }
+                        },
+                        modifier = Modifier.size(48.dp),
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    ) {
+                        Icon(Icons.Default.Explore, contentDescription = stringResource(R.string.north_icon_desc))
                     }
                     
                     Spacer(modifier = Modifier.height(8.dp))
