@@ -19,4 +19,5 @@
     <string name="joystick_action_shift">Shift (Strafe)</string>
     <string name="tilt_label">Map Tilt: %d°</string>
     <string name="hide_buttons_in_flight_label">Hide buttons in flight mode</string>
+    <string name="speed_format">%d km/h</string>
 </resources>

@@ -101,6 +101,7 @@ fun MapScreen(
     
     var joystickOffset by remember { mutableStateOf(Offset.Zero) }
     var showSettings by remember { mutableStateOf(false) }
+    var currentSpeed by remember { mutableStateOf(0f) }
     
     val selectedMapType by settingsRepository.mapTypeFlow
         .collectAsStateWithLifecycle(initialValue = MapType.NORMAL)
@@ -125,7 +126,9 @@ fun MapScreen(
         )
     }
     
-    FlightLoop(cameraPositionState, joystickOffset, joystickSideAction)
+    FlightLoop(cameraPositionState, joystickOffset, joystickSideAction) {
+        currentSpeed = it
+    }
 
     val buttonsVisible = !hideButtonsInFlight || joystickOffset == Offset.Zero
 
@@ -177,6 +180,27 @@ fun MapScreen(
                 properties = mapProperties,
                 uiSettings = uiSettings
             )
+
+            // Speed Overlay (Top-Left)
+            Box(
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .padding(16.dp)
+                    .align(Alignment.TopStart)
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                    shape = MaterialTheme.shapes.medium,
+                    tonalElevation = 4.dp
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.speed_format, currentSpeed.toInt()),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
 
             // Top-Right Buttons Overlay (Settings + My Location)
             if (buttonsVisible) {
