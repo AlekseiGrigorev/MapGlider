@@ -2,6 +2,14 @@ package com.aleksvgrig.mapglider.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Settings
@@ -41,6 +50,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -101,7 +111,8 @@ fun MapScreen(
     
     var joystickOffset by remember { mutableStateOf(Offset.Zero) }
     var showSettings by remember { mutableStateOf(false) }
-    var currentSpeed by remember { mutableStateOf(0f) }
+    var showAboutDialog by remember { mutableStateOf(false) }
+    var currentSpeed by remember { mutableFloatStateOf(0f) }
     
     val selectedMapType by settingsRepository.mapTypeFlow
         .collectAsStateWithLifecycle(initialValue = MapType.NORMAL)
@@ -221,6 +232,17 @@ fun MapScreen(
                             contentColor = MaterialTheme.colorScheme.onSurface
                         ) {
                             Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings_icon_desc))
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        FloatingActionButton(
+                            onClick = { showAboutDialog = true },
+                            modifier = Modifier.size(48.dp),
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = stringResource(R.string.about_button))
                         }
                         
                         Spacer(modifier = Modifier.height(8.dp))
@@ -361,6 +383,10 @@ fun MapScreen(
                 }
             }
         }
+    }
+
+    if (showAboutDialog) {
+        AboutDialog(onDismiss = { showAboutDialog = false })
     }
 }
 
@@ -568,4 +594,46 @@ fun SettingsContent(
             }
         }
     }
+}
+
+@Composable
+fun AboutDialog(onDismiss: () -> Unit) {
+    val privacyPolicyUrl = "https://github.com/AlekseiGrigorev/MapGlider/blob/main/privacy-policy.md"
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = stringResource(R.string.about_title))
+        },
+        text = {
+            Column {
+                Text(text = stringResource(R.string.app_name))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                val annotatedString = buildAnnotatedString {
+                    val text = stringResource(R.string.privacy_policy)
+                    withLink(LinkAnnotation.Url(url = privacyPolicyUrl)) {
+                        withStyle(
+                            style = SpanStyle(
+                                color = MaterialTheme.colorScheme.primary,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        ) {
+                            append(text)
+                        }
+                    }
+                }
+
+                Text(
+                    text = annotatedString,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.close_button))
+            }
+        }
+    )
 }

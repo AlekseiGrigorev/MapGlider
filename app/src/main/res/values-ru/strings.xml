@@ -20,4 +20,8 @@
     <string name="tilt_label">Наклон карты: %d°</string>
     <string name="hide_buttons_in_flight_label">Скрывать кнопки в режиме полета</string>
     <string name="speed_format">%d км/ч</string>
+    <string name="about_button">О программе</string>
+    <string name="about_title">О MapGlider</string>
+    <string name="privacy_policy">Политика конфиденциальности</string>
+    <string name="close_button">Закрыть</string>
 </resources>
