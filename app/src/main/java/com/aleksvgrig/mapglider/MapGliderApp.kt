@@ -19,7 +19,7 @@ class MapGliderApp : Application(), OnMapsSdkInitializedCallback {
     override fun onMapsSdkInitialized(renderer: MapsInitializer.Renderer) {
         when (renderer) {
             MapsInitializer.Renderer.LATEST -> Log.d("MapsRenderer", "The latest version of the renderer is used.")
-            MapsInitializer.Renderer.LEGACY -> Log.d("MapsRenderer", "The legacy version of the renderer is used.")
+            else -> Log.d("MapsRenderer", "The legacy version of the renderer is used.")
         }
     }
 }
