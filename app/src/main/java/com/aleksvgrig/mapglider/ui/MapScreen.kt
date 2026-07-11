@@ -63,6 +63,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aleksvgrig.mapglider.BuildConfig
 import com.aleksvgrig.mapglider.R
 import com.aleksvgrig.mapglider.data.JoystickPosition
 import com.aleksvgrig.mapglider.data.JoystickSideAction
@@ -124,6 +125,8 @@ fun MapScreen(
         .collectAsStateWithLifecycle(initialValue = 45f)
     val joystickSize by settingsRepository.joystickSizeFlow
         .collectAsStateWithLifecycle(initialValue = 1.0f)
+    val joystickSensitivity by settingsRepository.joystickSensitivityFlow
+        .collectAsStateWithLifecycle(initialValue = 0.5f)
     val hideButtonsInFlight by settingsRepository.hideButtonsInFlightFlow
         .collectAsStateWithLifecycle(initialValue = true)
 
@@ -137,7 +140,7 @@ fun MapScreen(
         )
     }
     
-    FlightLoop(cameraPositionState, joystickOffset, joystickSideAction) {
+    FlightLoop(cameraPositionState, joystickOffset, joystickSideAction, joystickSensitivity) {
         currentSpeed = it
     }
 
@@ -347,6 +350,7 @@ fun MapScreen(
                         currentJoystickSideAction = joystickSideAction,
                         currentTilt = tilt,
                         currentJoystickSize = joystickSize,
+                        currentJoystickSensitivity = joystickSensitivity,
                         hideButtonsInFlight = hideButtonsInFlight,
                         onMapTypeSelected = { 
                             scope.launch {
@@ -374,6 +378,11 @@ fun MapScreen(
                                 settingsRepository.saveJoystickSize(it)
                             }
                         },
+                        onJoystickSensitivityChanged = {
+                            scope.launch {
+                                settingsRepository.saveJoystickSensitivity(it)
+                            }
+                        },
                         onHideButtonsInFlightChanged = {
                             scope.launch {
                                 settingsRepository.saveHideButtonsInFlight(it)
@@ -397,12 +406,14 @@ fun SettingsContent(
     currentJoystickSideAction: JoystickSideAction = JoystickSideAction.ROTATE,
     currentTilt: Float = 45f,
     currentJoystickSize: Float = 1.0f,
+    currentJoystickSensitivity: Float = 0.5f,
     hideButtonsInFlight: Boolean = true,
     onMapTypeSelected: (MapType) -> Unit,
     onJoystickPositionSelected: (JoystickPosition) -> Unit = {},
     onJoystickSideActionSelected: (JoystickSideAction) -> Unit = {},
     onTiltChanged: (Float) -> Unit = {},
     onJoystickSizeChanged: (Float) -> Unit = {},
+    onJoystickSensitivityChanged: (Float) -> Unit = {},
     onHideButtonsInFlightChanged: (Boolean) -> Unit = {}
 ) {
     Column(
@@ -450,6 +461,24 @@ fun SettingsContent(
             onValueChange = onJoystickSizeChanged,
             valueRange = 1.0f..2.0f,
             steps = 9,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
+
+        Text(
+            text = stringResource(R.string.joystick_sensitivity_label, currentJoystickSensitivity),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Slider(
+            value = currentJoystickSensitivity,
+            onValueChange = onJoystickSensitivityChanged,
+            valueRange = 0.1f..1.0f,
+            steps = 17, // 0.1, 0.15, 0.2, ... 1.0
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
@@ -607,7 +636,19 @@ fun AboutDialog(onDismiss: () -> Unit) {
         },
         text = {
             Column {
-                Text(text = stringResource(R.string.app_name))
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = stringResource(R.string.version_label, BuildConfig.VERSION_NAME),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = stringResource(R.string.api_level_label, android.os.Build.VERSION.SDK_INT),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 val annotatedString = buildAnnotatedString {

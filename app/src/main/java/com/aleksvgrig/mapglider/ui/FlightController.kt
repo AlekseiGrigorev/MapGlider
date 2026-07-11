@@ -30,6 +30,7 @@ class FlightController(
     private var velocity = Offset.Zero
     private var targetVelocity = Offset.Zero
     private var sideAction = JoystickSideAction.ROTATE
+    private var sensitivity = 1.0f
     
     // Physics constants
     private val acceleration = 0.05f
@@ -38,9 +39,10 @@ class FlightController(
     private val moveScale = 5.0f // Restored to original
     private val rotationScale = 2.0f // degrees per frame
 
-    fun updateInput(input: Offset, action: JoystickSideAction) {
+    fun updateInput(input: Offset, action: JoystickSideAction, sensitivity: Float) {
         targetVelocity = input
         sideAction = action
+        this.sensitivity = sensitivity
     }
 
     suspend fun startFlightLoop() {
@@ -96,8 +98,12 @@ class FlightController(
         // Dynamic speed based on zoom (original formula)
         val speedMultiplier = max(1.0, 2.0.pow((20.0 - zoom))).toFloat()
         
+        // Apply sensitivity
+        val effectiveMoveScale = moveScale * sensitivity
+        val effectiveRotationScale = rotationScale * sensitivity
+
         // Calculate distances
-        val moveDistY = -vel.y * moveScale * speedMultiplier
+        val moveDistY = -vel.y * effectiveMoveScale * speedMultiplier
         
         var currentLatLng = currentPos.target
         currentLatLng = currentLatLng.computeOffset(moveDistY.toDouble(), currentPos.bearing.toDouble())
@@ -105,9 +111,9 @@ class FlightController(
         var newBearing = currentPos.bearing
         var moveDistX = 0.0
         if (action == JoystickSideAction.ROTATE) {
-            newBearing = (currentPos.bearing + vel.x * rotationScale) % 360f
+            newBearing = (currentPos.bearing + vel.x * effectiveRotationScale) % 360f
         } else {
-            moveDistX = (vel.x * moveScale * speedMultiplier).toDouble()
+            moveDistX = (vel.x * effectiveMoveScale * speedMultiplier).toDouble()
             currentLatLng = currentLatLng.computeOffset(moveDistX, (currentPos.bearing + 90.0) % 360.0)
         }
         
@@ -129,12 +135,13 @@ fun FlightLoop(
     cameraPositionState: CameraPositionState,
     joystickOffset: Offset,
     joystickSideAction: JoystickSideAction,
+    joystickSensitivity: Float,
     onSpeedChanged: (Float) -> Unit = {}
 ) {
     val controller = remember(cameraPositionState) { FlightController(cameraPositionState) }
     
-    LaunchedEffect(joystickOffset, joystickSideAction) {
-        controller.updateInput(joystickOffset, joystickSideAction)
+    LaunchedEffect(joystickOffset, joystickSideAction, joystickSensitivity) {
+        controller.updateInput(joystickOffset, joystickSideAction, joystickSensitivity)
     }
 
     LaunchedEffect(controller) {

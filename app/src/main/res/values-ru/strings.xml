@@ -14,6 +14,7 @@
     <string name="joystick_center">По центру</string>
     <string name="joystick_right">Справа</string>
     <string name="joystick_size_label">Размер джойстика: %.1f</string>
+    <string name="joystick_sensitivity_label">Чувствительность: %.2f</string>
     <string name="joystick_side_action_label">Действие при смещении вбок</string>
     <string name="joystick_action_rotate">Поворот</string>
     <string name="joystick_action_shift">Сдвиг</string>
@@ -22,6 +23,8 @@
     <string name="speed_format">%d км/ч</string>
     <string name="about_button">О программе</string>
     <string name="about_title">О MapGlider</string>
+    <string name="version_label">Версия: %s</string>
+    <string name="api_level_label">Android API: %d</string>
     <string name="privacy_policy">Политика конфиденциальности</string>
     <string name="close_button">Закрыть</string>
 </resources>

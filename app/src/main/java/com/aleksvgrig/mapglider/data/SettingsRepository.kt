@@ -28,6 +28,7 @@ class SettingsRepository(private val context: Context) {
     private val joystickSideActionKey = stringPreferencesKey("joystick_side_action")
     private val tiltKey = floatPreferencesKey("tilt")
     private val joystickSizeKey = floatPreferencesKey("joystick_size")
+    private val joystickSensitivityKey = floatPreferencesKey("joystick_sensitivity")
     private val hideButtonsInFlightKey = booleanPreferencesKey("hide_buttons_in_flight")
 
     val mapTypeFlow: Flow<MapType> = context.dataStore.data
@@ -70,6 +71,11 @@ class SettingsRepository(private val context: Context) {
             preferences[joystickSizeKey] ?: 1.0f
         }
 
+    val joystickSensitivityFlow: Flow<Float> = context.dataStore.data
+        .map { preferences ->
+            preferences[joystickSensitivityKey] ?: 0.5f
+        }
+
     val hideButtonsInFlightFlow: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
             preferences[hideButtonsInFlightKey] ?: true
@@ -102,6 +108,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun saveJoystickSize(size: Float) {
         context.dataStore.edit { preferences ->
             preferences[joystickSizeKey] = size
+        }
+    }
+
+    suspend fun saveJoystickSensitivity(sensitivity: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[joystickSensitivityKey] = sensitivity
         }
     }
 

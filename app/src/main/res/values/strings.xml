@@ -14,6 +14,7 @@
     <string name="joystick_center">Center</string>
     <string name="joystick_right">Right</string>
     <string name="joystick_size_label">Joystick Size: %.1f</string>
+    <string name="joystick_sensitivity_label">Joystick Sensitivity: %.2f</string>
     <string name="joystick_side_action_label">Joystick Side Action</string>
     <string name="joystick_action_rotate">Rotate</string>
     <string name="joystick_action_shift">Shift (Strafe)</string>
@@ -22,6 +23,8 @@
     <string name="speed_format">%d km/h</string>
     <string name="about_button">About</string>
     <string name="about_title">About MapGlider</string>
+    <string name="version_label">Version: %s</string>
+    <string name="api_level_label">Android API: %d</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="close_button">Close</string>
 </resources>
